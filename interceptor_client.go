@@ -162,12 +162,12 @@ func metricClientInterceptor(compName string, config *config) ClientInterceptor 
 			err := next(ctx, msgs, cmd)
 			cost := time.Since(ctx.Value(ctxStartTimeKey{}).(time.Time))
 			compNameTopic := fmt.Sprintf("%s.%s", compName, cmd.msg.Topic)
-			emetric.ClientHandleHistogram.WithLabelValues("kafka", compNameTopic, cmd.name, strings.Join(config.Brokers, ",")).Observe(cost.Seconds())
+			emetric.ClientHandleHistogram.WithLabelValues("kafka", compNameTopic, cmd.name, strings.Join(config.Brokers, ","), compName).Observe(cost.Seconds())
 			if err != nil {
-				emetric.ClientHandleCounter.Inc("kafka", compNameTopic, cmd.name, strings.Join(config.Brokers, ","), "Error")
+				emetric.ClientHandleCounter.Inc("kafka", compNameTopic, cmd.name, strings.Join(config.Brokers, ","), "Error", compName)
 				return err
 			}
-			emetric.ClientHandleCounter.Inc("kafka", compNameTopic, cmd.name, strings.Join(config.Brokers, ","), "OK")
+			emetric.ClientHandleCounter.Inc("kafka", compNameTopic, cmd.name, strings.Join(config.Brokers, ","), "OK", compName)
 			return nil
 		}
 	}

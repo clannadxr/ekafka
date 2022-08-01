@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ego-component/ekafka"
 	"github.com/gotomicro/ego/core/constant"
 	"github.com/gotomicro/ego/core/elog"
 	"github.com/gotomicro/ego/core/emetric"
 	"github.com/gotomicro/ego/server"
 	"github.com/segmentio/kafka-go"
+
+	"github.com/ego-component/ekafka"
 )
 
 // OnEachMessageHandler 的最大重试次数
@@ -266,13 +267,13 @@ func (cmp *Component) launchOnConsumerEachMessage() error {
 		HANDLER:
 
 			err = cmp.onEachMessageHandler(fetchCtx, message)
-			cmp.PackageName()
-			// Record the redis time-consuming
-			emetric.ClientHandleHistogram.WithLabelValues("kafka", compNameTopic, "HANDLER", brokers).Observe(time.Since(now).Seconds())
+			// Record the kafka time-consuming
+			instance := cmp.ekafkaComponent.GetCompName()
+			emetric.ClientHandleHistogram.WithLabelValues("kafka", compNameTopic, "HANDLER", brokers, instance).Observe(time.Since(now).Seconds())
 			if err != nil {
-				emetric.ClientHandleCounter.Inc("kafka", compNameTopic, "HANDLER", brokers, "Error")
+				emetric.ClientHandleCounter.Inc("kafka", compNameTopic, "HANDLER", brokers, "Error", instance)
 			} else {
-				emetric.ClientHandleCounter.Inc("kafka", compNameTopic, "HANDLER", brokers, "OK")
+				emetric.ClientHandleCounter.Inc("kafka", compNameTopic, "HANDLER", brokers, "OK", instance)
 			}
 
 			if err != nil {
@@ -294,11 +295,11 @@ func (cmp *Component) launchOnConsumerEachMessage() error {
 			err = consumer.CommitMessages(fetchCtx, &message)
 
 			// Record the redis time-consuming
-			emetric.ClientHandleHistogram.WithLabelValues("kafka", compNameTopic, "COMMIT", brokers).Observe(time.Since(now).Seconds())
+			emetric.ClientHandleHistogram.WithLabelValues("kafka", compNameTopic, "COMMIT", brokers, instance).Observe(time.Since(now).Seconds())
 			if err != nil {
-				emetric.ClientHandleCounter.Inc("kafka", compNameTopic, "COMMIT", brokers, "Error")
+				emetric.ClientHandleCounter.Inc("kafka", compNameTopic, "COMMIT", brokers, "Error", instance)
 			} else {
-				emetric.ClientHandleCounter.Inc("kafka", compNameTopic, "COMMIT", brokers, "OK")
+				emetric.ClientHandleCounter.Inc("kafka", compNameTopic, "COMMIT", brokers, "OK", instance)
 			}
 
 			if err != nil {
